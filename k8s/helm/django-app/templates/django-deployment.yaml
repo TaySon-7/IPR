@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.django.replicas}}
+  selector:
+    matchLabels:
+      app: django
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: django
+        component: backend
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/tayson-7/django-app:runserver
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: django-config
+            - secretRef:
+                name: django-secrets
