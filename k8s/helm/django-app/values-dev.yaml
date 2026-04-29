@@ -1,0 +1,10 @@
+namespace: django-dev
+django:
+  replicas: 1
+  DEBUG: "True"
+  SECRET_KEY: your_secret_key
+database:
+  DB_HOST: postgres-0.postgres.django-dev.svc.cluster.local
+  POSTGRES_DB: django-db
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: dev-password

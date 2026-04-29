@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: django-config
+  namespace: {{ .Values.namespace }}
+data:
+  DEBUG: {{ .Values.django.DEBUG | quote }}
+  POSTGRES_DB: {{ .Values.database.POSTGRES_DB }}
+  DB_HOST: {{ .Values.database.DB_HOST }}

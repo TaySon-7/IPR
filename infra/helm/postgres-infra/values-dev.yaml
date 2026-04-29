@@ -1,0 +1,6 @@
+namespace: django-dev
+postgres:
+  POSTGRES_DB: django-db
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: dev-password
+  storage: 256Mi

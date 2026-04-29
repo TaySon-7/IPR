@@ -1,0 +1,4 @@
+apiVersion: v2
+name: django-app
+description: Django with 2 viewsets on runserver
+version: 0.1.0

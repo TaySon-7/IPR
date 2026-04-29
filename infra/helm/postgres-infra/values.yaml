@@ -1,0 +1,6 @@
+namespace: default
+postgres:
+  POSTGRES_DB: django-db
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+  storage: 1Gi

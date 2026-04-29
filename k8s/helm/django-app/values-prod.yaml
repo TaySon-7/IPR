@@ -1,0 +1,10 @@
+namespace: django-prod
+django:
+  replicas: 3
+  DEBUG: "False"
+  SECRET_KEY: prod-key
+database:
+  DB_HOST: postgres-0.postgres.django-prod.svc.cluster.local
+  POSTGRES_DB: django-db
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: prod-password

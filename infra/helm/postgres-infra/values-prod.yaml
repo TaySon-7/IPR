@@ -1,0 +1,6 @@
+namespace: django-prod
+postgres:
+  POSTGRES_DB: django-db
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: prod-password
+  storage: 10Gi

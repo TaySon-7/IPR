@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: django-config
+data:
+  DEBUG: "False"
+  POSTGRES_DB: django-db
+  DB_HOST: postgres-0.postgres.django-prod.svc.cluster.local
