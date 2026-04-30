@@ -1,114 +1,77 @@
-# Лабораторная работа №6
+# Лабораторная работа №7: Observability
 
-Django одностраничный сайт на kubernetes.
-## Описание проекта
+Проект расширен метриками Prometheus, дашбордом Grafana и распределенным трейсингом через OpenTelemetry + Grafana Tempo.
 
-Реализовано 2 views /home и /health
+## Что реализовано
 
+- `/metrics` через `django-prometheus`.
+- HTTP-метрики приложения:
+  - `app_http_requests_total` (counter),
+  - `app_http_request_duration_seconds` (histogram).
+- Бизнес-метрика `app_health_checks_total`.
+- Экспорт трейсов через OTLP (HTTP/gRPC), включается переменными окружения.
+- Локальный observability stack через `docker-compose.observability.yml`:
+  - Prometheus,
+  - Grafana,
+  - Tempo.
+- K8s манифест `ServiceMonitor` для Prometheus Operator.
 
-## Запуск Kubernetes
+## Запуск локально (Docker Compose)
 
-### Сначала запускаете инфраструктуру
+1) Подготовьте `.env` (минимум `SECRET_KEY`, `POSTGRES_*`).
 
-1. База данных вынесена как отдельная инфраструктура в infra:
-- infra/helm
-- infra/kustomization
+2) Запустите приложение + observability:
 
-# PostgreSQL Infrastructure
-
-## Контракт для приложения
-
-| Параметр | Dev                                            | Prod                                             |
-|----------|------------------------------------------------|--------------------------------------------------|
-| Хост | postgres-0.postgres.django-demo.svc.cluster.local | postgres-0.postgres.prod.svc.cluster.local       |
-| Порт | 5432                                           | 5432                                             |
-| База | django-db                                      | django-db                                        |
-| Пользователь | postgres                                       | postgres                                         |
-| Пароль | В Secret `dev-password` namespace `django-dev` | В Secret `prod-password` namespace `django-prod` |
-
-перейдите в каталог postgres-infra: 
-
-для запуска через helm:
-
-dev-запуск
-```commandline
-helm upgrade --install postgrerd-db . --namespace=django-dev --create-namespace -f values-dev.yaml
+```bash
+docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d --build
 ```
 
-prod-запуск
-```commandline
-helm upgrade --install postgrerd-db . --namespace=django-prod --create-namespace -f values-prod.yaml
+3) Проверьте endpoints:
+
+- API health: `http://localhost:8080/health/`
+- Метрики: `http://localhost:8080/metrics`
+- Prometheus: `http://localhost:9090`
+- Grafana: `http://localhost:3001` (`admin/admin`)
+- Tempo API: `http://localhost:3200`
+
+4) Сгенерируйте нагрузку:
+
+```bash
+for i in {1..10}; do curl -s http://localhost:8080/health/ > /dev/null; done
 ```
 
-для запуска через kustomize:
-перейдите в каталог infra/:
-dev-запуск:
-создайте namespace 
-```commandline
-kubectl create namespace django-dev
+После этого:
+- в Prometheus (`Status -> Targets`) цель приложения должна быть `UP`,
+- в Grafana в папке `Lab7` должен появиться дашборд `Lab7 Observability`,
+- в Grafana Explore (datasource `Tempo`) должны быть trace'ы.
+
+## Kubernetes (кратко)
+
+1) Разверните БД (из `infra`), затем приложение (`k8s`).
+2) Разверните стек наблюдаемости (Prometheus Operator / Tempo / Grafana) в namespace `observability`.
+3) Примените `ServiceMonitor`:
+
+```bash
+kubectl apply -k k8s/kustomization/base
 ```
 
-```commandline
-kubectl apply -k kustomization/overlays/dev
-```
+4) Проверьте, что в deployment backend заданы:
 
-prod-запуск:
-создайте namespace 
-```commandline
-kubectl create namespace django-prod
-```
+- `OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo.observability.svc.cluster.local:4318`
+- `OTEL_SERVICE_NAME=django-backend`
 
-```commandline
-kubectl apply -k kustomization/overlays/prod
-```
+## Структура observability-конфигов
 
-### Длаее запускаете приложение
+- `observability/prometheus.yml` — scrape-конфигурация.
+- `observability/tempo.yaml` — Tempo receiver/storage.
+- `observability/grafana/datasources/datasources.yaml` — datasource provisioning.
+- `observability/grafana/dashboards/` — dashboard provisioning + JSON дашборд.
+- `k8s/kustomization/base/django-servicemonitor.yaml` — ServiceMonitor для Prometheus Operator.
 
-2. Django сайт в k8s:
-- k8s/helm
-- k8s/kustomization
+## Скриншоты для отчета
 
-перейдите в каталог k8s/helm/django-app: 
+Положите скриншоты в `docs/screenshots/lab7/`:
 
-для запуска через helm:
-
-dev-запуск
-```commandline
-helm upgrade --install django-app . --set django.SECRET_KEY="your_key" --namespace=django-dev --create-namespace -f values-dev.yaml
-```
-
-prod-запуск
-```commandline
-helm upgrade --install django-app . --set django.SECRET_KEY="your_key" --namespace=django-prod --create-namespace -f values-prod.yaml
-```
-
-для запуска через kustomize:
-перейдите в каталог k8s/
-Если инфраструктуру запускали через kustomization, то namespace создавать уже не надо.
-
-dev-запуск:
-создайте namespace 
-```commandline
-kubectl create namespace django-dev
-```
-
-```commandline
-kubectl apply -k kustomization/overlays/dev
-```
-
-prod-запуск:
-создайте namespace 
-```commandline
-kubectl create namespace django-prod
-```
-
-```commandline
-kubectl apply -k kustomization/overlays/prod
-```
-
-## Разработчик
-
-Туревич Максим
-Email: miturevich@mai.education
-
-
+- `prometheus-targets.png` — Targets с `UP`.
+- `grafana-dashboard.png` — дашборд метрик backend.
+- `tempo-trace.png` — полный trace в Explore -> Tempo.

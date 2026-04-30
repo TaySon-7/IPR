@@ -4,3 +4,7 @@ kind: Kustomization
 resources:
   - django-deployment.yaml
   - django-service.yaml
+  - django-servicemonitor.yaml
+  - prometheus-config.yaml
+  - tempo.yaml
+  - grafana.yaml

@@ -16,9 +16,14 @@ spec:
     spec:
       containers:
         - name: app
-          image: ghcr.io/tayson-7/django-app:runserver
+          image: ghcr.io/tayson-7/django-app:prometheus
           ports:
             - containerPort: 8000
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://tempo.observability.svc.cluster.local:4318"
+            - name: OTEL_SERVICE_NAME
+              value: "django-backend"
           envFrom:
             - configMapRef:
                 name: django-config

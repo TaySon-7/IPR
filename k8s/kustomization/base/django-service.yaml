@@ -3,11 +3,12 @@ kind: Service
 metadata:
   name: service-django
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: django
     component: backend
   ports:
     - port: 8000
       targetPort: 8000
+      name: http
 
