@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    depends_on:
+      web:
+        condition: service_started
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=30d'
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:10.4.0
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./observability/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./observability/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3001:3000"
+    networks:
+      - monitoring
+
+  tempo:
+    image: grafana/tempo:2.4.0
+    command:
+      - "-config.file=/etc/tempo.yaml"
+    volumes:
+      - ./observability/tempo.yaml:/etc/tempo.yaml
+      - tempo_data:/tmp/tempo
+    ports:
+      - "3200:3200"   # Tempo API
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+    networks:
+      - monitoring
+volumes:
+  prometheus_data:
+  grafana_data:
+  tempo_data:
+
+# Сеть monitoring объявлена только в docker-compose.yml, чтобы при
+# docker compose -f docker-compose.yml -f docker-compose.observability.yml
+# все сервисы были в одной сети и имя сервиса web резолвилось из Prometheus.
