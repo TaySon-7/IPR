@@ -1,51 +1,40 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: django
+  name: frontend
   namespace: django-app
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: django
-      component: backend
+      component: frontend
   template:
     metadata:
       labels:
         app: django
-        component: backend
+        component: frontend
     spec:
       containers:
-        - name: app
-          image: ghcr.io/tayson-7/django-app:runserver
+        - name: frontend
+          image: ghcr.io/tayson-7/django-app:frontend-react
           imagePullPolicy: Always
           ports:
             - name: http
-              containerPort: 8000
-          envFrom:
-            - configMapRef:
-                name: django-config
-            - secretRef:
-                name: django-secrets
-          startupProbe:
-            httpGet:
-              path: /live/
-              port: http
-            failureThreshold: 30
-            periodSeconds: 5
+              containerPort: 80
           readinessProbe:
             httpGet:
-              path: /health/
+              path: /
               port: http
-            initialDelaySeconds: 10
+            initialDelaySeconds: 5
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 3
           livenessProbe:
             httpGet:
-              path: /live/
+              path: /
               port: http
-            initialDelaySeconds: 20
+            initialDelaySeconds: 15
             periodSeconds: 20
             timeoutSeconds: 3
             failureThreshold: 3
