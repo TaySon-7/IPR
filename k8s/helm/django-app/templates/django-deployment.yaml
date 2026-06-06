@@ -4,7 +4,7 @@ metadata:
   name: django
   namespace: {{ .Values.namespace }}
 spec:
-  replicas: {{ .Values.django.replicas}}
+  replicas: {{ .Values.django.replicas }}
   selector:
     matchLabels:
       app: django
@@ -17,11 +17,35 @@ spec:
     spec:
       containers:
         - name: app
-          image: ghcr.io/tayson-7/django-app:runserver
+          image: {{ .Values.django.image | quote }}
+          imagePullPolicy: {{ .Values.django.imagePullPolicy | quote }}
           ports:
-            - containerPort: 8000
+            - name: http
+              containerPort: 8000
           envFrom:
             - configMapRef:
                 name: django-config
             - secretRef:
                 name: django-secrets
+          readinessProbe:
+            httpGet:
+              path: /health/
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: service-django
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: service-django
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3

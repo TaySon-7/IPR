@@ -5,5 +5,6 @@ metadata:
   namespace: {{ .Values.namespace }}
 data:
   DEBUG: {{ .Values.django.DEBUG | quote }}
-  POSTGRES_DB: {{ .Values.database.POSTGRES_DB }}
-  DB_HOST: {{ .Values.database.DB_HOST }}
+  ALLOWED_HOSTS: {{ .Values.django.ALLOWED_HOSTS | quote }}
+  POSTGRES_DB: {{ .Values.database.POSTGRES_DB | quote }}
+  DB_HOST: {{ .Values.database.DB_HOST | quote }}

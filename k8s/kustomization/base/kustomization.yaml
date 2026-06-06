@@ -4,3 +4,5 @@ kind: Kustomization
 resources:
   - django-deployment.yaml
   - django-service.yaml
+  - frontend-deployment.yaml
+  - frontend-service.yaml

@@ -4,5 +4,6 @@ metadata:
   name: django-config
 data:
   DEBUG: "True"
+  ALLOWED_HOSTS: "localhost,127.0.0.1,service-django"
   POSTGRES_DB: django-db
   DB_HOST: postgres-0.postgres.django-dev.svc.cluster.local

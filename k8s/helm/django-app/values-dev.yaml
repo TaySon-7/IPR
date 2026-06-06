@@ -1,8 +1,18 @@
 namespace: django-dev
 django:
   replicas: 1
+  image: ghcr.io/tayson-7/django-app:lab6-backend
+  imagePullPolicy: IfNotPresent
   DEBUG: "True"
+  ALLOWED_HOSTS: "localhost,127.0.0.1,service-django"
   SECRET_KEY: your_secret_key
+frontend:
+  replicas: 1
+  image: ghcr.io/tayson-7/django-app:lab6-frontend
+  imagePullPolicy: IfNotPresent
+  service:
+    type: LoadBalancer
+    port: 3000
 database:
   DB_HOST: postgres-0.postgres.django-dev.svc.cluster.local
   POSTGRES_DB: django-db

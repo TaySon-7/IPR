@@ -1,9 +1,31 @@
 # Лабораторная работа №6
 
-Django одностраничный сайт на kubernetes.
+Django backend, отдельный React frontend и PostgreSQL-инфраструктура на Kubernetes.
 ## Описание проекта
 
-Реализовано 2 views /home и /health
+Реализовано:
+
+- Django backend с endpoints `/` и `/health/`;
+- отдельный React frontend в своем контейнере;
+- Kustomize overlays `dev` и `prod` для приложения;
+- Helm chart приложения с `values-dev.yaml` и `values-prod.yaml`;
+- отдельная PostgreSQL-инфраструктура в `infra/` через Helm и Kustomize.
+
+В `k8s/kustomization` и `k8s/helm` нет манифестов базы данных. Приложение получает параметры подключения к PostgreSQL через `DB_HOST`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` из overlays/values.
+
+## Сборка образов
+
+Backend:
+
+```commandline
+docker buildx build -t ghcr.io/tayson-7/django-app:lab6-backend --push .
+```
+
+Frontend:
+
+```commandline
+docker buildx build -t ghcr.io/tayson-7/django-app:lab6-frontend -f frontend/Dockerfile --push frontend
+```
 
 
 ## Запуск Kubernetes
@@ -20,24 +42,24 @@ Django одностраничный сайт на kubernetes.
 
 | Параметр | Dev                                            | Prod                                             |
 |----------|------------------------------------------------|--------------------------------------------------|
-| Хост | postgres-0.postgres.django-demo.svc.cluster.local | postgres-0.postgres.prod.svc.cluster.local       |
+| Хост | postgres-0.postgres.django-dev.svc.cluster.local | postgres-0.postgres.django-prod.svc.cluster.local |
 | Порт | 5432                                           | 5432                                             |
 | База | django-db                                      | django-db                                        |
 | Пользователь | postgres                                       | postgres                                         |
 | Пароль | В Secret `dev-password` namespace `django-dev` | В Secret `prod-password` namespace `django-prod` |
 
-перейдите в каталог postgres-infra: 
+перейдите в каталог `infra/helm/postgres-infra`:
 
 для запуска через helm:
 
 dev-запуск
 ```commandline
-helm upgrade --install postgrerd-db . --namespace=django-dev --create-namespace -f values-dev.yaml
+helm upgrade --install postgres-db . --namespace=django-dev --create-namespace -f values-dev.yaml
 ```
 
 prod-запуск
 ```commandline
-helm upgrade --install postgrerd-db . --namespace=django-prod --create-namespace -f values-prod.yaml
+helm upgrade --install postgres-db . --namespace=django-prod --create-namespace -f values-prod.yaml
 ```
 
 для запуска через kustomize:
@@ -62,9 +84,9 @@ kubectl create namespace django-prod
 kubectl apply -k kustomization/overlays/prod
 ```
 
-### Длаее запускаете приложение
+### Далее запускаете приложение
 
-2. Django сайт в k8s:
+2. Django backend и React frontend в k8s:
 - k8s/helm
 - k8s/kustomization
 
@@ -96,6 +118,36 @@ kubectl create namespace django-dev
 kubectl apply -k kustomization/overlays/dev
 ```
 
+Проверка dev:
+
+```commandline
+kubectl get pods -n django-dev
+kubectl get svc -n django-dev
+kubectl port-forward -n django-dev service/service-frontend 3000:3000
+```
+
+Если локальный порт `3000` уже занят, используйте:
+
+```commandline
+kubectl port-forward -n django-dev service/service-frontend 3001:3000
+```
+
+Откройте frontend:
+
+```text
+http://localhost:3000/
+```
+
+или `http://localhost:3001/`, если использовали порт `3001`.
+
+Backend health-check доступен через frontend proxy:
+
+```text
+http://localhost:3000/api/health/
+```
+
+или `http://localhost:3001/api/health/`, если использовали порт `3001`.
+
 prod-запуск:
 создайте namespace 
 ```commandline
@@ -110,5 +162,3 @@ kubectl apply -k kustomization/overlays/prod
 
 Туревич Максим
 Email: miturevich@mai.education
-
-
