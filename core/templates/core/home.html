@@ -1,0 +1,46 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Django + PostgreSQL</title>
+    <link rel="stylesheet" href="{% static 'core/styles.css' %}">
+</head>
+<body>
+    <main class="page">
+        <section class="hero">
+            <div class="hero__content">
+                <p class="eyebrow">Лабораторная работа Kubernetes</p>
+                <h1>Django + PostgreSQL</h1>
+                <p class="lead">
+                    Одностраничный frontend для приложения с backend на Django,
+                    базой данных PostgreSQL и проверками состояния в Kubernetes.
+                </p>
+                <div class="actions">
+                    <a class="button button--primary" href="/health/">Health</a>
+                    <a class="button" href="/admin/">Admin</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="status-grid" aria-label="Состояние компонентов">
+            <article class="status-card">
+                <span class="status-card__label">Backend</span>
+                <strong>Django</strong>
+                <p>HTTP endpoints для страницы, liveness и readiness.</p>
+            </article>
+            <article class="status-card">
+                <span class="status-card__label">Database</span>
+                <strong>PostgreSQL</strong>
+                <p>Проверка подключения выполняется через endpoint <code>/health/</code>.</p>
+            </article>
+            <article class="status-card">
+                <span class="status-card__label">Kubernetes</span>
+                <strong>Probes</strong>
+                <p>Манифесты содержат liveness, readiness и startup probes.</p>
+            </article>
+        </section>
+    </main>
+</body>
+</html>

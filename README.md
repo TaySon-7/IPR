@@ -3,7 +3,7 @@
 Django одностраничный сайт на kubernetes.
 ## Описание проекта
 
-Реализовано 2 views /home и /health
+Реализован frontend для главной страницы, endpoints `/live/` и `/health/`, а также Kubernetes probes для Django и PostgreSQL.
 
 В проекте есть docker-compose1 для отдельного запуска PostgreSQL, docker-compose для полного запуска и бд, и приложения.
 Также есть возможность развернуть приложение на kubernetes: есть deployment и service под django и PostgreSQL
@@ -22,5 +22,4 @@ kubectl apply -f k8s/base
 
 Туревич Максим
 Email: miturevich@mai.education
-
 
